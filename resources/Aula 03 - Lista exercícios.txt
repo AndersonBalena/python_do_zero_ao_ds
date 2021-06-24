@@ -1,0 +1,24 @@
+Novas pergunas do CEO para você:
+
+1. Crie uma coluna nova chamada "dormitory_type"
+	- Se o valor da coluna "bedrooms" for igual à 1 => "studio"
+	- Se o valor da colune "bedrooms" for igual a 2 => "apartment"
+	- Se o valor da colune "bedrooms" for maior que 2 => "house"
+	
+2. Faça um gráfico de barras que represente a soma dos preços pelo número de quartos.
+
+3. Faça um gráfico de linhas que represente a média dos preços pelo ano de construção dos imóveis.
+
+4. Faça um gráfico de barras que represente a média dos preços pelo tipo dos dormitórios.
+
+5. Faça um gráfico de linha que mostre a evolução da média dos preços pelo ano da reforma dos imóveis, a partir do ano de 1930.
+
+6. Faça uma tabela que mostre a média dos preços por ano de construção e tipo de dormitórios dos imóveis.
+
+7. Crie um dashboard com os gráficos das questões 02, 03 e 04 ( Dashboard: 1 linha e 2 colunas )
+
+8. Crie um dashboard com os gráficos das questões 02 e 04 ( Dashboard: 2 colunas )
+
+9. Crie um dashboard com os gráficos das questões 03 e 05 ( Dashboard: 2 linhas )
+
+10. Faça um mapa com o tamanho dos pontos sendo igual ao tamanho da sala de estar
