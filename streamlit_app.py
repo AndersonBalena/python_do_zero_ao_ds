@@ -1,9 +1,13 @@
-from numpy import heaviside
-import pandas as pd
+# import geopandas
 import streamlit as st
+import pandas as pd
 import numpy as np
 import folium
+import plotly.express as px
+
+from datetime import datetime
 from streamlit_folium import folium_static
+from folium.plugins import MarkerCluster
 
 st.set_page_config( layout='wide' )
 
@@ -13,11 +17,23 @@ def get_data( path ):
 
     return data
 
+# @st.cache( allow_output_mutation=True )
+# def get_geofile( url ):
+#    geofile = geopandas.read_file( url )
+
+#    return geofile
+
 path = '.\datasets\kc_house_data.csv'
 data = pd.read_csv( path )
 
+# get geofile
+# url = 'https://opendata.arcgis.com/datasets/83fc2e72903343aabff6de8cb448b81c_2.geojson'
+# geofile = get_geofile( url )
+
 # Add new features
 data['price_m2'] = data['price'] / data['sqft_lot']
+
+data['date'] = pd.to_datetime( data['date'] ).dt.strftime( '%Y-%m-%d' )
 
 # ================================
 # Data Overview
@@ -78,12 +94,92 @@ st.title( 'Region Overview' )
 c1, c2 = st.beta_columns((1,1))
 c1.header('Portofio Density')
 
-df = data.sample(10)
+df = data.sample(100)
 
 #Base Map - Folium
 density_map = folium.Map(location=[data['lat'].mean(),
                                    data['long'].mean()],
                                    default_zoom_start=15)
 
+marker_cluster = MarkerCluster().add_to( density_map )
+
+for name, row in df.iterrows():
+    folium.Marker( [ row['lat'], row['long'] ], 
+        popup='Sold R$ {0} on: {1}. Features: {2} sqft, {3} bedrooms, {4} bathrooms, year built: {5}'.format( row['price'],
+                                                                                                              row['date'],
+                                                                                                              row['sqft_living'],
+                                                                                                              row['bedrooms'],
+                                                                                                              row['bathrooms'],
+                                                                                                              row['yr_built']
+                                                                                                            )
+    ).add_to( marker_cluster )
+
 with c1:
     folium_static( density_map )
+
+# Region Price Map
+# c2.header( 'Price Density' )
+
+# df = data[['price', 'zipcode']].groupby('zipcode').mean().reset_index()
+# df.columns = ['ZIP', 'PRICE']
+
+# df = df.sample( 10 )
+
+# region_price_map = folium.Map(location=[data['lat'].mean(),
+#                                    data['long'].mean()],
+#                                    default_zoom_start=15)
+
+# region_price_map.choropleth( data=df,
+#                              geo_data = geofile,
+#                              columns=['ZIP', 'PRICE'],
+#                              key_on='feature.properties.ZIP',
+#                              fill_color='YlOrRd',
+#                              fill_opacity=0.7,
+#                              line_opacity=0.2,
+#                              legend_name='AVG PRICE' ) """
+
+# """ with c2:
+#     folium_static( region_price_map )
+
+# ================================
+# Distribuição dos imoveis por categorias comerciais
+# ================================
+st.sidebar.title('Commercial Options')
+st.title( 'Commercial Attributes' )
+
+#filters
+min_year_built = data['yr_built'].min()
+max_year_built = data['yr_built'].max()
+
+st.sidebar.subheader('Select Max Year Built')
+f_year_built = st.sidebar.slider('Year built', min_year_built, max_year_built, min_year_built)
+
+# --------- Average Price per Year
+st.header( 'Avarage price per Year built' )
+
+df = data.loc[data['yr_built'] <= f_year_built]
+
+df = df[['yr_built', 'price']].groupby('yr_built').mean().reset_index()
+
+fig = px.line(df, x='yr_built', y='price')
+
+st.plotly_chart(fig, use_container_width=True )
+
+# --------- Average Price per Date
+st.header('Avarage price per day')
+st.sidebar.subheader('Select Max Date')
+
+min_date = datetime.strptime( data['date'].min(), '%Y-%m-%d' )
+max_date = datetime.strptime( data['date'].max(), '%Y-%m-%d' )
+
+f_date = st.sidebar.slider('Date', min_date, max_date, min_date)
+
+data['date'] = pd.to_datetime( data['date'] )
+
+df = data.loc[data['date'] <= f_date]
+
+df = df[['date', 'price']].groupby('date').mean().reset_index()
+
+fig = px.line(df, x='date', y='price')
+
+st.plotly_chart(fig, use_container_width=True )
