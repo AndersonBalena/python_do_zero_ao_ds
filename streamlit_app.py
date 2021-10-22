@@ -183,3 +183,59 @@ df = df[['date', 'price']].groupby('date').mean().reset_index()
 fig = px.line(df, x='date', y='price')
 
 st.plotly_chart(fig, use_container_width=True )
+
+# --------- Histograma
+st.header( 'Price Distribution' )
+st.sidebar.subheader( 'Select Max Price' )
+
+# filter
+min_price = int( data['price'].min() ) 
+max_price = int( data['price'].max() )
+avg_price = int( data['price'].mean() )
+
+f_price = st.sidebar.slider( 'Price', min_price, max_price, avg_price )
+
+df = data.loc[data['price'] < f_price]
+
+fig = px.histogram( df, x='price', nbins=50 )
+st.plotly_chart( fig, use_container_width=True)
+
+# ==================================================
+# Distribuicao dos imoveis por categorias fisicas
+# ==================================================
+st.sidebar.title( 'Attributes Option' )
+st.title( 'House Attributes' )
+
+# filters
+f_bedrooms = st.sidebar.selectbox( 'Max number of bedrooms', sorted( set( data['bedrooms'].unique() ) ) )
+f_bathrooms = st.sidebar.selectbox( 'Max number of bathrooms', sorted( set( data['bathrooms'].unique() ) ) )
+f_floors = st.sidebar.selectbox( 'Max number of floors', sorted( set( data['floors'].unique() ) ) )
+f_waterview = st.sidebar.checkbox( 'Only houses with water view' )
+
+c1, c2 = st.beta_columns( 2 )
+
+# House per bedrooms
+c1.header( 'Houses per bedrooms' )
+fig = px.histogram( data.loc[ data['bedrooms'] <= f_bedrooms ], x='bedrooms', nbins=19)
+c1.plotly_chart( fig, use_container_width=True)
+
+# House per bathrooms
+c2.header( 'Houses per bathrooms' )
+fig = px.histogram( data.loc[ data['bathrooms'] <= f_bathrooms ], x='bathrooms', nbins=19)
+c2.plotly_chart( fig, use_container_width=True)
+
+c1, c2 = st.beta_columns( 2 )
+
+# House per floors
+c1.header( 'Houses per floors' )
+fig = px.histogram( data.loc[ data['floors'] <= f_floors ], x='floors', nbins=19)
+c1.plotly_chart( fig, use_container_width=True)
+
+# House per water view
+if f_waterview:
+    df = data[ data['waterfront'] == 1 ]
+else:
+    df = data.copy()
+
+fig = px.histogram( df, x='waterfront', nbins=10 )
+c2.plotly_chart( fig, use_container_width=True )
